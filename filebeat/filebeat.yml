@@ -21,13 +21,17 @@ filebeat.inputs:
 - type: log
 
   # Change to true to enable this input configuration.
-  enabled: false
+  enabled: true
 
   # Paths that should be crawled and fetched. Glob based paths.
   paths:
-    - /var/log/*.log
+    - /Users/jockj/Downloads/*.log
     #- c:\programdata\elasticsearch\logs\*
-
+  fields:
+    component: wap
+    eventtype: wap_elk
+    type: log
+  fields_under_root: true
   # Exclude lines. A list of regular expressions to match. It drops the lines that are
   # matching any regular expression from the list.
   #exclude_lines: ['^DBG']
@@ -61,35 +65,6 @@ filebeat.inputs:
   # that was (not) matched before or after or as long as a pattern is not matched based on negate.
   # Note: After is the equivalent to previous and before is the equivalent to to next in Logstash
   #multiline.match: after
-
-# filestream is an experimental input. It is going to replace log input in the future.
-- type: filestream
-
-  # Change to true to enable this input configuration.
-  enabled: false
-
-  # Paths that should be crawled and fetched. Glob based paths.
-  paths:
-    - /var/log/*.log
-    #- c:\programdata\elasticsearch\logs\*
-
-  # Exclude lines. A list of regular expressions to match. It drops the lines that are
-  # matching any regular expression from the list.
-  #exclude_lines: ['^DBG']
-
-  # Include lines. A list of regular expressions to match. It exports the lines that are
-  # matching any regular expression from the list.
-  #include_lines: ['^ERR', '^WARN']
-
-  # Exclude files. A list of regular expressions to match. Filebeat drops the files that
-  # are matching any regular expression from the list. By default, no files are dropped.
-  #prospector.scanner.exclude_files: ['.gz$']
-
-  # Optional additional fields. These fields can be freely picked
-  # to add additional information to the crawled log files for filtering
-  #fields:
-  #  level: debug
-  #  review: 1
 
 # ============================== Filebeat modules ==============================
 
@@ -173,9 +148,9 @@ setup.kibana:
 # Configure what output to use when sending the data collected by the beat.
 
 # ---------------------------- Elasticsearch Output ----------------------------
-output.elasticsearch:
+#output.elasticsearch:
   # Array of hosts to connect to.
-  hosts: ["localhost:9200"]
+  #hosts: ["localhost:9200"]
 
   # Protocol - either `http` (default) or `https`.
   #protocol: "https"
@@ -200,23 +175,75 @@ output.elasticsearch:
   # Client Certificate Key
   #ssl.key: "/etc/pki/client/cert.key"
 
+# ----------------------------------- File Output -----------------------------
+output.file:
+  path: "/Users/jockj/Downloads"
+  filename: filebeat_output.txt
+
+# ----------------------------------- Kafka Output -----------------------------
+# output.kafka:
+#   enabled: true
+#   client_id: elasticstack
+#   required_acks: 1
+#   compression: lz4
+#   max_message_bytes: 1000000
+#   version: 2.0.0
+
+#   ssl.enabled: true
+#   ssl.certificate_authorities: ["/Users/jockj/Downloads/filebeat/filebeat_rca.crt"]
+#   ssl.supported_protocols: [TLSv1.2]
+#   ssl.verification_mode: none
+#   ssl.client_authentication: none
+
+# SSL + SASL (plain mechanism, local username/password) begin
+#  hosts: ["ckam014kbr01.webex.com:9093"]
+#  topic: test1
+
+#  username: "test_admin"
+#  password: "testadmin"
+#  ssl.certificate: "/Users/jockj/Downloads/filebeat/filebeat.crt"
+#  ssl.key: "/Users/jockj/Downloads/filebeat/filebeat.key"
+# SSL + SASL (plain mechanism, local username/password) end 
+
+
+
+  # hosts: ["ckam014kbr01.webex.com:9092"]
+  # topic: test1
+  # kerberos.enabled: true
+  # kerberos.auth_type: keytab
+  # #kerberos.auth_type: password
+  # kerberos.username: "kafka-wap.gen"
+  # #kerberos.password: "Ch4ll3ng3M3!"
+  # kerberos.keytab: "/Users/jockj/Downloads/filebeat/kafka-wap.gen.keytab.new"
+  # kerberos.service_name: "kafka"
+  # kerberos.config_path: "/Users/jockj/Downloads/filebeat/krb5.conf.new"
+  # kerberos.realm: "FUSION.PRV.WEBEX.COM"
+
+
 # ================================= Processors =================================
 processors:
   - add_host_metadata:
       when.not.contains.tags: forwarded
-  - add_cloud_metadata: ~
-  - add_docker_metadata: ~
-  - add_kubernetes_metadata: ~
-
+#  - add_cloud_metadata: ~
+#  - add_docker_metadata: ~
+#  - add_kubernetes_metadata: ~
+  - webexpii:
+      fields:
+        - agent
+        - clientip
+        - eventtype
+        - host.name
+      ignore_missing: true
+      rest_server: "http://dbt1caw003.webex.com:8090"
 # ================================== Logging ===================================
 
 # Sets log level. The default log level is info.
 # Available log levels are: error, warning, info, debug
-#logging.level: debug
+logging.level: warning
 
 # At debug level, you can selectively enable logging only for some components.
 # To enable all selectors use ["*"]. Examples of other selectors are "beat",
-# "publisher", "service".
+# "publish", "service".
 #logging.selectors: ["*"]
 
 # ============================= X-Pack Monitoring ==============================
@@ -267,4 +294,3 @@ processors:
 
 # This allows to enable 6.7 migration aliases
 #migration.6_to_7.enabled: true
-
