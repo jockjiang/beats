@@ -50,12 +50,13 @@ import (
 	"github.com/elastic/beats/v7/libbeat/statestore"
 	"github.com/elastic/go-concert/unison"
 
+	// include (why)
 	_ "github.com/elastic/beats/v7/filebeat/include"
 
 	// Add filebeat level processors
 	_ "github.com/elastic/beats/v7/filebeat/processor/add_kubernetes_metadata"
-	_ "github.com/elastic/beats/v7/filebeat/processor/webexpii"
 	_ "github.com/elastic/beats/v7/libbeat/processors/decode_csv_fields"
+	_ "sqbu-github.cisco.com/WAP-DPI/webexpii"
 
 	// include all filebeat specific builders
 	_ "github.com/elastic/beats/v7/filebeat/autodiscover/builder/hints"
